@@ -1,19 +1,28 @@
 :orphan:
 
-==================
-Pycroscopy Gallery
-==================
+====================
+Examples & Tutorials
+====================
 
 
 .. raw:: html
 
-    <div class="sphx-glr-thumbcontainer" tooltip="">
+    <div style='clear:both'></div>
+
+========================
+Scientific Data Analysis
+========================
+
+
+.. raw:: html
+
+    <div class="sphx-glr-thumbcontainer" tooltip="S. Somnath\ :sup:`1,2`,  R. K. Vasudevan\ :sup:`1,3` * :sup:`1` Institute for Functional Imagin...">
 
 .. only:: html
 
-    .. figure:: /auto_examples/images/thumb/sphx_glr_microdata_example_thumb.png
+    .. figure:: /auto_examples/data_analysis/images/thumb/sphx_glr_plot_spectral_unmixing_thumb.png
 
-        :ref:`sphx_glr_auto_examples_microdata_example.py`
+        :ref:`sphx_glr_auto_examples_data_analysis_plot_spectral_unmixing.py`
 
 .. raw:: html
 
@@ -23,17 +32,25 @@ Pycroscopy Gallery
 .. toctree::
    :hidden:
 
-   /auto_examples/microdata_example
+   /auto_examples/data_analysis/plot_spectral_unmixing
+.. raw:: html
+
+    <div style='clear:both'></div>
+
+===================
+Developer Tutorials
+===================
+
 
 .. raw:: html
 
-    <div class="sphx-glr-thumbcontainer" tooltip="Conventionally, the h5py package is used to create, read, write, and modify h5 files.">
+    <div class="sphx-glr-thumbcontainer" tooltip="**Chris R. Smith** -- cq6@ornl.gov License: MIT">
 
 .. only:: html
 
-    .. figure:: /auto_examples/images/thumb/sphx_glr_load_dataset_example_thumb.png
+    .. figure:: /auto_examples/dev_tutorials/images/thumb/sphx_glr_plot_tutorial_01_5_microdata_thumb.png
 
-        :ref:`sphx_glr_auto_examples_load_dataset_example.py`
+        :ref:`sphx_glr_auto_examples_dev_tutorials_plot_tutorial_01_5_microdata.py`
 
 .. raw:: html
 
@@ -43,7 +60,7 @@ Pycroscopy Gallery
 .. toctree::
    :hidden:
 
-   /auto_examples/load_dataset_example
+   /auto_examples/dev_tutorials/plot_tutorial_01_5_microdata
 
 .. raw:: html
 
@@ -51,29 +68,9 @@ Pycroscopy Gallery
 
 .. only:: html
 
-    .. figure:: /auto_examples/images/thumb/sphx_glr_plot_translator_tutorial_thumb.png
+    .. figure:: /auto_examples/dev_tutorials/images/thumb/sphx_glr_plot_tutorial_01_translator_thumb.png
 
-        :ref:`sphx_glr_auto_examples_plot_translator_tutorial.py`
-
-.. raw:: html
-
-    </div>
-
-
-.. toctree::
-   :hidden:
-
-   /auto_examples/plot_translator_tutorial
-
-.. raw:: html
-
-    <div class="sphx-glr-thumbcontainer" tooltip="R. K. Vasudevan\ :sup:`1,2`\ , S. Somnath\ :sup:`3`">
-
-.. only:: html
-
-    .. figure:: /auto_examples/images/thumb/sphx_glr_plot_spectral_unmixing_thumb.png
-
-        :ref:`sphx_glr_auto_examples_plot_spectral_unmixing.py`
+        :ref:`sphx_glr_auto_examples_dev_tutorials_plot_tutorial_01_translator.py`
 
 .. raw:: html
 
@@ -83,7 +80,7 @@ Pycroscopy Gallery
 .. toctree::
    :hidden:
 
-   /auto_examples/plot_spectral_unmixing
+   /auto_examples/dev_tutorials/plot_tutorial_01_translator
 
 .. raw:: html
 
@@ -91,9 +88,9 @@ Pycroscopy Gallery
 
 .. only:: html
 
-    .. figure:: /auto_examples/images/thumb/sphx_glr_plot_writing_to_h5_thumb.png
+    .. figure:: /auto_examples/dev_tutorials/images/thumb/sphx_glr_plot_tutorial_02_writing_to_h5_thumb.png
 
-        :ref:`sphx_glr_auto_examples_plot_writing_to_h5.py`
+        :ref:`sphx_glr_auto_examples_dev_tutorials_plot_tutorial_02_writing_to_h5.py`
 
 .. raw:: html
 
@@ -103,7 +100,7 @@ Pycroscopy Gallery
 .. toctree::
    :hidden:
 
-   /auto_examples/plot_writing_to_h5
+   /auto_examples/dev_tutorials/plot_tutorial_02_writing_to_h5
 
 .. raw:: html
 
@@ -111,9 +108,9 @@ Pycroscopy Gallery
 
 .. only:: html
 
-    .. figure:: /auto_examples/images/thumb/sphx_glr_plot_multidimensional_data_thumb.png
+    .. figure:: /auto_examples/dev_tutorials/images/thumb/sphx_glr_plot_tutorial_03_multidimensional_data_thumb.png
 
-        :ref:`sphx_glr_auto_examples_plot_multidimensional_data.py`
+        :ref:`sphx_glr_auto_examples_dev_tutorials_plot_tutorial_03_multidimensional_data.py`
 
 .. raw:: html
 
@@ -123,14 +120,84 @@ Pycroscopy Gallery
 .. toctree::
    :hidden:
 
-   /auto_examples/plot_multidimensional_data
+   /auto_examples/dev_tutorials/plot_tutorial_03_multidimensional_data
+
+.. raw:: html
+
+    <div class="sphx-glr-thumbcontainer" tooltip="**Suhas Somnath, Chris R. Smith**">
+
+.. only:: html
+
+    .. figure:: /auto_examples/dev_tutorials/images/thumb/sphx_glr_plot_tutorial_04_parallel_computing_thumb.png
+
+        :ref:`sphx_glr_auto_examples_dev_tutorials_plot_tutorial_04_parallel_computing.py`
+
+.. raw:: html
+
+    </div>
+
+
+.. toctree::
+   :hidden:
+
+   /auto_examples/dev_tutorials/plot_tutorial_04_parallel_computing
+
+.. raw:: html
+
+    <div class="sphx-glr-thumbcontainer" tooltip="**Suhas Somnath**">
+
+.. only:: html
+
+    .. figure:: /auto_examples/dev_tutorials/images/thumb/sphx_glr_plot_tutorial_05_data_processing_thumb.png
+
+        :ref:`sphx_glr_auto_examples_dev_tutorials_plot_tutorial_05_data_processing.py`
+
+.. raw:: html
+
+    </div>
+
+
+.. toctree::
+   :hidden:
+
+   /auto_examples/dev_tutorials/plot_tutorial_05_data_processing
+.. raw:: html
+
+    <div style='clear:both'></div>
+
+==============
+User Tutorials
+==============
+
+
+.. raw:: html
+
+    <div class="sphx-glr-thumbcontainer" tooltip="11/11/2017">
+
+.. only:: html
+
+    .. figure:: /auto_examples/user_tutorials/images/thumb/sphx_glr_plot_tutorial_01_interacting_w_h5_files_thumb.png
+
+        :ref:`sphx_glr_auto_examples_user_tutorials_plot_tutorial_01_interacting_w_h5_files.py`
+
+.. raw:: html
+
+    </div>
+
+
+.. toctree::
+   :hidden:
+
+   /auto_examples/user_tutorials/plot_tutorial_01_interacting_w_h5_files
 .. raw:: html
 
     <div style='clear:both'></div>
 
 
 
-.. container:: sphx-glr-footer
+.. only :: html
+
+ .. container:: sphx-glr-footer
 
 
   .. container:: sphx-glr-download
@@ -143,6 +210,9 @@ Pycroscopy Gallery
 
     :download:`Download all examples in Jupyter notebooks: auto_examples_jupyter.zip <//home/challtdow/workspace/pycroscopy/docs/auto_examples/auto_examples_jupyter.zip>`
 
-.. rst-class:: sphx-glr-signature
 
-    `Generated by Sphinx-Gallery <https://sphinx-gallery.readthedocs.io>`_
+.. only:: html
+
+ .. rst-class:: sphx-glr-signature
+
+    `Gallery generated by Sphinx-Gallery <https://sphinx-gallery.readthedocs.io>`_

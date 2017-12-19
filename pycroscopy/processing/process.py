@@ -9,7 +9,7 @@ import numpy as np
 import psutil
 import joblib
 
-from ..io.hdf_utils import checkIfMain
+from ..io.hdf_utils import checkIfMain, check_for_old, get_attributes
 from ..io.io_hdf5 import ioHDF5
 from ..io.io_utils import recommendCores, getAvailableMem
 
@@ -50,19 +50,26 @@ class Process(object):
     Encapsulates the typical steps performed when applying a processing function to  a dataset.
     """
 
-    def __init__(self, h5_main, cores=None, max_mem_mb=None):
+    def __init__(self, h5_main, h5_results_grp=None, cores=None, max_mem_mb=4*1024, verbose=False):
         """
         Parameters
         ----------
         h5_main : h5py.Dataset instance
             The dataset over which the analysis will be performed. This dataset should be linked to the spectroscopic
             indices and values, and position indices and values datasets.
+        h5_results_grp : h5py.Datagroup object, optional
+            Datagroup containing partially computed results
         cores : uint, optional
-            Default - None
+            Default - all available cores - 2
             How many cores to use for the computation
         max_mem_mb : uint, optional
-            How much memory to use for the computation.  Default None
+            How much memory to use for the computation.  Default 1024 Mb
+        verbose : Boolean, (Optional, default = False)
+            Whether or not to print debugging statements
         """
+
+        if h5_main.file.mode != 'r+':
+            raise TypeError('Need to ensure that the file is in r+ mode to write results back to the file')
 
         # Checking if dataset is "Main"
         if checkIfMain(h5_main):
@@ -71,16 +78,61 @@ class Process(object):
         else:
             raise ValueError('Provided dataset is not a "Main" dataset with necessary ancillary datasets')
 
-        # Determining the max size of the data that can be put into memory
-        self._set_memory_and_cores(cores=cores, mem=max_mem_mb)
+        self.verbose = verbose
+        self._max_pos_per_read = None
+        self._max_mem_mb = None
 
         self._start_pos = 0
         self._end_pos = self.h5_main.shape[0]
 
-        self._results = None
-        self.h5_results_grp = None
+        # Determining the max size of the data that can be put into memory
+        self._set_memory_and_cores(cores=cores, mem=max_mem_mb)
+        self.duplicate_h5_groups = []
+        self.process_name = None  # Reset this in the extended classes
+        self.parms_dict = None
 
-    def _set_memory_and_cores(self, cores=None, mem=None, verbose=False):
+        self._results = None
+        self.h5_results_grp = h5_results_grp
+        if self.h5_results_grp is not None:
+            self._extract_params(h5_results_grp)
+
+        # DON'T check for duplicates since parms_dict has not yet been initialized.
+        # Sub classes will check by themselves if they are interested.
+
+    def _check_for_duplicates(self):
+        """
+        Checks for instances where the process was applied to the same dataset with the same parameters
+
+        Returns
+        -------
+        duplicate_h5_groups : list of h5py.Datagroup objects
+            List of groups satisfying the above conditions
+        """
+        duplicate_h5_groups = check_for_old(self.h5_main, self.process_name, new_parms=self.parms_dict)
+        if self.verbose:
+            print('Checking for duplicates:')
+        if duplicate_h5_groups is not None:
+            print('WARNING! ' + self.process_name + ' has already been performed with the same parameters before. '
+                                                    'Consider reusing results')
+            print(duplicate_h5_groups)
+        return duplicate_h5_groups
+
+    def _extract_params(self, h5_partial_group):
+        """
+        Extracts the necessary parameters from the provided h5 group to resume computation
+
+        Parameters
+        ----------
+        h5_partial_group : h5py.Datagroup object
+            Datagroup containing partially computed results
+
+        """
+        self.parms_dict = get_attributes(h5_partial_group)
+        self._start_pos = self.parms_dict.pop('last_pixel')
+        if self._start_pos == self.h5_main.shape[0] - 1:
+            raise ValueError('The last computed pixel shows that the computation was already complete')
+
+    def _set_memory_and_cores(self, cores=1, mem=1024):
         """
         Checks hardware limitations such as memory, # cpus and sets the recommended datachunk sizes and the
         number of cores to be used by analysis methods.
@@ -88,11 +140,11 @@ class Process(object):
         Parameters
         ----------
         cores : uint, optional
-            Default - None
+            Default - 1
             How many cores to use for the computation
-        verbose : bool, optional
-            Whether or not to print log statements
-
+        mem : uint, optional
+            Default - 1024
+            The amount a memory in Mb to use in the computation
         """
 
         if cores is None:
@@ -111,7 +163,7 @@ class Process(object):
         mb_per_position = self.h5_main.dtype.itemsize * self.h5_main.shape[1] / 1e6
         self._max_pos_per_read = int(np.floor(max_data_chunk / mb_per_position))
 
-        if verbose:
+        if self.verbose:
             print('Allowed to read {} pixels per chunk'.format(self._max_pos_per_read))
             print('Allowed to use up to', str(self._cores), 'cores and', str(self._max_mem_mb), 'MB of memory')
 
@@ -119,7 +171,7 @@ class Process(object):
     def _unit_function(*args):
         raise NotImplementedError('Please override the _unit_function specific to your process')
 
-    def _read_data_chunk(self, verbose=False):
+    def _read_data_chunk(self):
         """
         Reads a chunk of data for the intended computation into memory
 
@@ -131,13 +183,13 @@ class Process(object):
         if self._start_pos < self.h5_main.shape[0]:
             self._end_pos = int(min(self.h5_main.shape[0], self._start_pos + self._max_pos_per_read))
             self.data = self.h5_main[self._start_pos:self._end_pos, :]
-            if verbose:
+            if self.verbose:
                 print('Reading pixels {} to {} of {}'.format(self._start_pos, self._end_pos, self.h5_main.shape[0]))
 
             # DON'T update the start position
 
         else:
-            if verbose:
+            if self.verbose:
                 print('Finished reading all data!')
             self.data = None
 
@@ -159,6 +211,14 @@ class Process(object):
         """
         raise NotImplementedError('Please override the _create_results_datasets specific to your process')
 
+    def _get_existing_datasets(self):
+        """
+        The purpose of this function is to allow processes to resume from partly computed results
+
+        Start with self.h5_results_grp
+        """
+        raise NotImplementedError('Please override the _get_existing_datasets specific to your process')
+
     def compute(self, *args, **kwargs):
         """
 
@@ -172,13 +232,16 @@ class Process(object):
         -------
 
         """
-
-        self._create_results_datasets()
-        self._start_pos = 0
+        if self._start_pos == 0:
+            # starting fresh
+            self._create_results_datasets()
+        else:
+            # resuming from previous checkpoint
+            self._get_existing_datasets()
 
         self._read_data_chunk()
         while self.data is not None:
-            self._results = parallel_compute(self.data, self._unit_function, cores=self._cores,
+            self._results = parallel_compute(self.data, self._unit_function(), cores=self._cores,
                                              lengthy_computation=False,
                                              func_args=args, func_kwargs=kwargs)
             self._write_results_chunk()

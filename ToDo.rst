@@ -1,62 +1,43 @@
 .. contents::
 
-Roadmap / Milestones
+v 1.0 goals
+-----------
+1. test utils - 2+ weeks
+2. DONE - good utilities for interrogating data - pycro data
+3. partially done - good documentation for both users and developers
+
+  * Need more on dealing with data + plot_utils tour
+  * (for developers) explaining what is where and why + io utils + hdf utils tour etc.
+4. mostly done - generic visualizer
+5. settle on a structure for process and analysis - moderate ~ 1 day
+ 
+  * Model needs to catch up with Process
+6. mostly done - good utils for generating publishable plots - easy ~ 1 day
+7. Reorganize package - promote / demote lesser used utilites to processes / analyses. 
+
+Short-term goals
 --------------------
-1. Sep 2017 end - Cleaned versions of the main modules (Analysis pending) + enough documentation for users and developers
-2. Oct 2017 mid - Multi-node compute capability
+* Multi-node compute capability
+* More documentation to help users / developers + PAPER
+* Cleaned versions of the main modules (Analysis pending) + enough documentation for users and developers
 
-New features
-------------
-Core development
-~~~~~~~~~~~~~~~~
-* Simplify and demystify analyis / optimize. Use parallel_compute and joblib
-* multi-node computing capability in parallel_compute
-* Data Generators
+Documentation
+-------------
+* Upload clean exports of paper notebooks - Stephen and Chris
+*	Include examples in documentation
+* Links to references for all functions and methods used in our workflows.
 
-External user contributions
-~~~~~~~~~~~~~~~~~~~~~~~~~~~
-* Li Xin classification code 
-* Ondrej Dyck’s atom finding code – written but needs work before fully integrated
-* Nina Wisinger’s processing code (Tselev) – in progress
-* Sabine Neumeyer's cKPFM code
-* Iaroslav Gaponenko's Distort correct code from - https://github.com/paruch-group/distortcorrect.
-* Port everything from IFIM Matlab -> Python translation exercises
-* Other workflows/functions that already exist as scripts or notebooks
-
-Plotting updates
-----------------
-*	Switch to using plot.ly and dash for interactive elements
-*	Possibly use MayaVi for 3d plotting
-
-Examples / Tutorials
---------------------
-Short tutorials on how to use pycroscopy
+Fundamental tutorials on how to use pycroscopy
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-* Access h5 files
-* Find a specific dataset/group in the file
-* Select data within a dataset in various ways
-* micro datasets / microdata groups
-* chunking the main dataset
-* Links to tutorials on how to use pycharm, Git, 
-
-Longer examples (via specific scientific usecases)
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-Done:
-
-* Data formatting in pycroscopy
-* How to write a Translator
-* How to write (back) to H5
-* Spectral Unmixing with pycroscopy
-* Basic introduction to loading data in pycroscopy
-* Handling multidimensional (6D) datasets
-* Visualizing data (interactively using widgets) (needs some tiny automation in the end)
-* How to write your write your own parallel computing function using the process module
-
-Pending:
-
-* How to write your own analysis class
-* A tour of the many functions in hdf_utils and io_utils since these functions need data to show / explain them.
+* A tour of what is where and why
+* A tour of the hdf_utils functions used for writing h5 files since these functions need data to show / explain them.
+  
+  * chunking the main dataset
+* A tour of the io_utils functions since these functions need data to show / explain them.
+* A tour of plot_utils
 * pycroscopy pacakge organization - a short writeup on what is where and differences between the process / analyis submodules
+* How to write your own analysis class based on the (to-be simplified) Model class
+* Links to tutorials on how to use pycharm, Git, 
 
 Rama's (older and more applied / specific) tutorial goals
 ~~~~~~~~~~~~~~~~~~~~
@@ -66,28 +47,93 @@ Rama's (older and more applied / specific) tutorial goals
 4. Take a FORC IV ESM dataset and break it up into forward and reverse branches, along with positive and negative branches. Do correlation analysis between PFM and IV for different branches and store the results in the file, and readily access them for plotting again.
 5. A guide to using the model fitter for parallel fitting of numpy array-style datasets. This one can be merged with number 
 
-Documentation
--------------
-*	Switch from static examples to dynamic jupyter notebook like examples:
-   * http://scikit-image.org/docs/dev/auto_examples/ 
-   * http://scikit-learn.org/stable/auto_examples/index.html 
-   * more complicated analyses -  http://nipy.org/dipy/examples_index.html
-   * Done for existing documentation
-   * Work will be needed after examples are done
-*	Include examples in documentation
+New features
+------------
+Core development
+~~~~~~~~~~~~~~~~
+* EVERY process tool should implement two new features:
+  
+  1. Check if the same process has been performed with the same paramters. When initializing the process, throw an exception. This is better than checking in the notebook stage.
+  2. (Gracefully) Abort and resume processing.
+  
+* consolidate _get_component_slice used in Cluster with duplicate in svd_utils
+* Reogranize processing and analysis - promote / demote classes etc.
+* Legacy processes **MUST** extend Process:
+
+  * Image Windowing
+  * Image Cleaning
+  * All these MUST implement the check for previous computations at the very least
+  * As time permits, ensure that these can resume processing
+  
+* Absorb functionality from Process into Model
+* Bayesian GIV should actually be an analysis <-- depends on above
+* multi-node computing capability in parallel_compute
+* Demystify analyis / optimize. Use parallel_compute instead of optimize and guess_methods and fit_methods
+* Consistency in the naming of and placement of attributes (chan or meas group) in all translators - Some put attributes in the measurement level, some in the channel level! hyperspy appears to create datagroups solely for the purpose of organizing metadata in a tree structure! 
+* Consider developing a generic curve fitting class a la `hyperspy <http://nbviewer.jupyter.org/github/hyperspy/hyperspy-demos/blob/master/Fitting_tutorial.ipynb>`_
+* Improve visualization of file contents in print_tree() like hyperspy's `metadata <http://hyperspy.org/hyperspy-doc/current/user_guide/metadata_structure.html>`_
+
+GUI
+~~~~~~~~~~~
+* Make the generic interactive visualizer for 3 and 4D float numpy arrays ROBUST
+
+  * Allow slicing at the pycrodataset level to handle > 4D datasets - 20 mins
+  * Need to handle appropriate reference values for the tick marks in 2D plots - 20 mins
+  * Handle situation when only one position and one spectral axis are present. - low priority - 20 mins
+* TRULY Generic visualizer in plot.lly / dash? that can use the PycroDataset class
+*	Switch to using plot.ly and dash for interactive elements
+*	Possibly use MayaVi for 3d plotting
+
+Plot Utils
+~~~~~~~~~
+* move plot_image_cleaning_results to a application specific module
+* move save_fig_filebox_button and export_fig_data to jupyter_utils
+* ensure most of these functions result in publication-ready plots (good proportions, font sizes, etc.)
+* plot_map 
+
+  1. allow the tick labels to be specified instead of just the x_size and y_size. 
+
+* plot_loops
+ 
+  1. Legend at the bottom
+  
+* plot_map_stack:
+
+  1. Add ability to manually specify x and y tick labels - see plot_cluster_results_together for inspiration
+  2. See all other changes that were made for the image cleaning paper
+
+* plot_cluster_results_together
+
+  1. Use plot_map and its cleaner color bar option
+  2. Option to use a color bar for the centroids instead of a legend - especially if number of clusters > 7
+  3. See G-mode IV paper to see other changes
+
+* plot_cluster_results_separate
+  
+  1. Use same guidelines as above
+
+* plot_cluster_dendrogram - this function has not worked recently to my knowledge. Fortunately, it is not one of the more popular functions so it gets low priority for now. Use inspiration from image cleaning paper
+
+* plot_histograms - not used frequently. Can be ignored for this pass
+
+External user contributions
+~~~~~~~~~~~~~~~~~~~~~~~~~~~
+* Li Xin classification code 
+* Ondrej Dyck’s atom finding code – written well but needs to work on images with different kinds of atoms
+* Nina Wisinger’s processing code (Tselev) – in progress
+* Sabine Neumeyer's cKPFM code
+* Iaroslav Gaponenko's Distort correct code from - https://github.com/paruch-group/distortcorrect.
+* Port everything from IFIM Matlab -> Python translation exercises
+* Other workflows/functions that already exist as scripts or notebooks
 
 Formatting changes
 ------------------
 *	Fix remaining PEP8 problems
 *	Ensure code and documentation is standardized
-*	Switch to standard version formatting
 *	Classes and major Functions should check to see if the results already exist
 
 Notebooks
 ---------
-*	Direct downloading of notebooks (ipynb an html)
-  * nbviewer?
-  * Host somewhere other than github?
 *	Investigate using JupyterLab
 
 Testing
