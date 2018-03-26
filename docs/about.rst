@@ -16,6 +16,8 @@ With  pycroscopy we aim to:
 
 To learn more about the motivation, general structure, and philosophy of pycroscopy, please read this `short introduction <https://github.com/pycroscopy/pycroscopy/blob/master/docs/pycroscopy_2017_07_11.pdf>`_.
 
+Jump to our `GitHub project <https://github.com/pycroscopy/pycroscopy>`_
+
 Who?
 -----------
 This project begun largely as an effort by scientists and engineers at the **C**\enter for **N**\anophase
@@ -27,13 +29,19 @@ By sharing our methodology and code for analyzing materials imaging we hope that
 community of materials science/physics. We also hope, quite ardently, that other materials scientists would
 follow suit.
 
-**The (core) pycroscopy team:**
+The core pycroscopy team consists of:
 
 * `@ssomnath <https://github.com/ssomnath>`_ (Suhas Somnath), 
 * `@CompPhysChris <https://github.com/CompPhysChris>`_ (Chris R. Smith), 
 * `@nlaanait <https://github.com/nlaanait>`_ (Numan Laanait), 
 * `@stephenjesse <https://github.com/stephenjesse>`_ (Stephen Jesse) 
-* and many more...
+
+Substantial contributions from many developers including:
+
+* `@ianton86 <https://github.com/ianton86>`_ (Anton Ievlev)
+* `@ramav87 <https://github.com/ramav87>`_ (Rama K. Vasudevan)
+* `@ondrejdyck <https://github.com/ondrejdyck>`_ (Ondrej Dyck)
+* and many more
 
 Why?
 ---------------
