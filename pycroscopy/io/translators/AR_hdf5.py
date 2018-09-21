@@ -139,7 +139,7 @@ class ARhdf5(Translator):
         # is limited from the disk, and therefore is not useful
         # to parallelize these loops
         for index, channel in enumerate(self.channels_name):
-            channel = str(channel)
+            channel = str(channel, encoding='utf-8')
             cur_chan = usid.hdf_utils.create_indexed_group(h5_meas_group, 'Channel')
             main_dset = np.empty((self.map_size['X'], self.map_size['Y'], tot_length))
             for column in np.arange(self.map_size['X']):
@@ -181,7 +181,10 @@ class ARhdf5(Translator):
         # Spectroscopic indices/valus are they are just one single dimension
         img_spec_dims = [usid.write_utils.Dimension('arb', 'a.u.', [1])]
         for index, image in enumerate(ARh5_file['Image'].keys()):
-            image = str(image)
+            try:
+                image = str(image, encoding='utf-8')
+            except:
+                image = str(image)
             main_dset = np.reshape(np.array(ARh5_file['Image'][image]), (-1,1), order='F')
             cur_chan = usid.hdf_utils.create_indexed_group(h5_meas_group, 'Channel')
             if index == 0:
