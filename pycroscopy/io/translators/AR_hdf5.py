@@ -57,7 +57,7 @@ class ARhdf5(Translator):
         self.points_per_sec = None
         
     def translate(self, data_filepath, out_filename,
-                  verbose=False, debug=False):
+                  debug=False):
         '''
         The main function that translates the provided file into a .h5 file
 
@@ -90,23 +90,23 @@ class ARhdf5(Translator):
             raise
 
         #Get info from the origin file like Notes and Segments
-        self.notes = ARh5_file.attrs['Note']
+        self.notes = self.notes2dict(ARh5_file.attrs['Note'])
         self.segments = ARh5_file['ForceMap']['Segments'] #shape: (X, Y, 4)
         self.segments_name = list(ARh5_file['ForceMap'].attrs['Segments'])
         self.map_size['X'] = ARh5_file['ForceMap']['Segments'].shape[0]
         self.map_size['Y'] = ARh5_file['ForceMap']['Segments'].shape[1]
         self.channels_name = list(ARh5_file['ForceMap'].attrs['Channels'])
         try:
-            self.points_per_sec = np.float(self.note_value('ARDoIVPointsPerSec'))
+            self.points_per_sec = np.float(self.notes['ARDoIVPointsPerSec'])
         except NameError:
-            self.points_per_sec = np.float(self.note_value('NumPtsPerSec'))
+            self.points_per_sec = np.float(self.notes['NumPtsPerSec'])
         if self.debug:
             print('Map size [X, Y]: ', self.map_size)
             print('Channels names: ', self.channels_name)
 
         # Only the extension 'Ext' segment can change size
         # so we get the shortest one and we trim all the others
-        extension_idx = self.segments_name.index('Ext')
+        extension_idx = self.segments_name.index(b'Ext')
         short_ext = np.amin(np.array(self.segments[:, :, extension_idx]))
         longest_ext = np.amax(np.array(self.segments[:, :, extension_idx]))
         difference = longest_ext - short_ext #this is a difference between integers
@@ -126,9 +126,9 @@ class ARhdf5(Translator):
 
         # Create all channels and main datasets
         # at this point the main dataset are just function of time
-        x_dim = np.linspace(0, np.float(self.note_value('FastScanSize')),
+        x_dim = np.linspace(0, np.float(self.notes['FastScanSize']),
                              self.map_size['X'])
-        y_dim = np.linspace(0, np.float(self.note_value('FastScanSize')),
+        y_dim = np.linspace(0, np.float(self.notes['FastScanSize']),
                              self.map_size['Y'])
         z_dim = np.arange(tot_length) / np.float(self.points_per_sec)
         pos_dims = [usid.write_utils.Dimension('Cols', 'm', x_dim),
@@ -139,6 +139,7 @@ class ARhdf5(Translator):
         # is limited from the disk, and therefore is not useful
         # to parallelize these loops
         for index, channel in enumerate(self.channels_name):
+            channel = str(channel)
             cur_chan = usid.hdf_utils.create_indexed_group(h5_meas_group, 'Channel')
             main_dset = np.empty((self.map_size['X'], self.map_size['Y'], tot_length))
             for column in np.arange(self.map_size['X']):
@@ -180,6 +181,7 @@ class ARhdf5(Translator):
         # Spectroscopic indices/valus are they are just one single dimension
         img_spec_dims = [usid.write_utils.Dimension('arb', 'a.u.', [1])]
         for index, image in enumerate(ARh5_file['Image'].keys()):
+            image = str(image)
             main_dset = np.reshape(np.array(ARh5_file['Image'][image]), (-1,1), order='F')
             cur_chan = usid.hdf_utils.create_indexed_group(h5_meas_group, 'Channel')
             if index == 0:
@@ -211,16 +213,16 @@ class ARhdf5(Translator):
                                                            )
 
         # Create the new segments that will be stored as attribute
-        new_segments = {}
+        new_segments = []
         for seg, name in enumerate(self.segments_name):
-            new_segments.update({name:self.segments[0,0,seg] - short_ext})
+            new_segments.append([name, self.segments[0,0,seg] - difference])
         usid.hdf_utils.write_simple_attrs(h5_meas_group, {'Segments':new_segments,
                                                           'Points_trimmed':points_trimmed,
-                                                          'Notes':self.notes})
+                                                          'Notes':ARh5_file.attrs['Note']})
         usid.hdf_utils.write_simple_attrs(h5_file,
                                           {'translator':'ARhdf5',
-                                           'instrument':'Asylum Research '+self.note_value('MicroscopeModel'),
-                                           'AR sftware version':self.note_value('Version')})
+                                           'instrument':'Asylum Research '+ self.notes['MicroscopeModel'],
+                                           'AR sftware version': self.notes['Version']})
 
         if self.debug:
             print(usid.hdf_utils.print_tree(h5_file))
@@ -237,37 +239,37 @@ class ARhdf5(Translator):
         self.translated = True
         return h5_path
 
-    def note_value(self, name):
-        '''
-        Get the value of a single note entry with name "name"
-        
-        Parameters
-        ----------------
-        name : String / unicode
-            Name of the parameter to get teh value
+    def notes2dict(self, notes_string):
+        '''From the string with all the instrumental parameters
+        extract the values in a dictionary
 
-        Returns
-        ----------------
-        value : String / unicode
-            Value of the Note entry requested.
-        '''
-        try:
-            match = re.search(r"^" + name + ":\s+(.+$)", self.notes, re.M)
-            if not match:
-                raise
-        except:
-            match = re.search(r"^" + name + ":+(.+$)", self.notes, re.M)
-        if (match):
-            matched = match.groups()
-            if len(matched) == 1:
-                return match.groups()[0]
-            else:
-                # We do not expect to enter here
-                print('WARNING! Multiple value matched! \n Only the first is returned')
-                return match.groups()[0]
-        else:
-            raise NameError('Note entry with name "{}" not found'.format(name))
+        Parameter
+        ---------
+        notes_string : string/unicode
+           string with all the instrumental parameters are
+           saved from AR
 
+        Return
+        ------
+        notesdict : dictionary
+           dictionary containing all the value present 
+           in the notes_string
+        '''
+
+        notes_string = notes_string.decode('utf-8')
+        array = np.array([x.split(':') for x in notes_string.split('\n')])
+        notesdict = {}
+        lenght = array.shape[0]
+        for i in np.arange(lenght-1):
+            try:
+                notesdict.update(dict(array[i:i+1]))
+            except ValueError:
+                joined = '/'.join(array[i][1:])
+                inlist = [[array[i][0], joined]]
+                notesdict.update(dict(inlist))
+                
+        return notesdict
+            
     def get_def_unit(self, chan_name):
         """
         Retrive the default unit from the channel name
@@ -283,8 +285,12 @@ class ARhdf5(Translator):
             Default unit of that channel
         """
 
+        # try:
+        #     chan_name = chan_name.decode('ascii')
+        # except:
+        #     print('ASCII decoding failed')
         # Check if chan_name is string
-        if not isinstance(chan_name, basestring):
+        if not isinstance(chan_name, str):
             raise TypeError('The channel name must be of type string')
 
         # Find the default unit        
@@ -319,5 +325,5 @@ class ARhdf5(Translator):
                 print('Unknown unit for channel: {}'.format(chan_name))
                 print('Unit set to "unknown"')
             default_unit = 'unknown'
-
+            
         return default_unit
